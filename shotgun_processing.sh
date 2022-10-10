@@ -43,7 +43,7 @@ chmod +x humann3er50.cmd
 #SBATCH --tmp=10g
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=goul0109@umn.edu
-cd /home/umii/goul0109/Prins_004/
+cd $3
 module load parallel
 singularity run -B /$3/kneaddata_output/Humann3Output/all_metaphlan_bug_list /home/umii/goul0109/biobakeryworkflows.sif
 parallel --jobs 5 < humann3er.cmd
