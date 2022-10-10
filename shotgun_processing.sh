@@ -3,8 +3,8 @@
 #data = $1
 #reference = $2
 #working_directory = $3
-for i in *R1_001.fastq.gz; do echo "kneaddata --input $1/$i --input $1/${i//_R1_/_R2_} -db $2 --remove-intermediate-output --output $3/kneaddata_output -t 24" >> kneader.cmd; done
 cd $3
+for i in *R1_001.fastq.gz; do echo "kneaddata --input $1/$i --input $1/${i//_R1_/_R2_} -db $2 --remove-intermediate-output --output kneaddata_output -t 24" >> kneader.cmd; done
 chmod +x kneader.cmd
 
 #!/bin/bash -l
@@ -15,9 +15,8 @@ chmod +x kneader.cmd
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=goul0109@umn.edu
 cd $3
-singularity run -B -3 -B $2 -B $1 /home/umii/goul0109/biobakeryworkflows.sif
+singularity run -B -$3 -B $2 -B $1 /home/umii/goul0109/biobakeryworkflows.sif
 ./kneader.cmd
-
 
 # humann3 asks for cat paired reads for single input
 cd PairedKnead
@@ -30,11 +29,14 @@ mv *combined* ../combined_paired
 
 mkdir Humann3Output
 
-for i in combined_paired/*.fastq; do echo "humann --input $i --output Humann3Output --threads 24" >> humann3er.cmd; done
-chmod +x humann3er.cmd
+# uniref default
+#for i in combined_paired/*.fastq; do echo "humann --input $i --output Humann3Output --threads 24" >> humann3er.cmd; done
+#chmod +x humann3er.cmd
 
+# uniref50 reference
 for i in combined_paired/*.fastq; do echo "humann --input $i --search-mode uniref50 --output Humann3Outputuniref50 --threads 24" >> humann3er50.cmd; done
 chmod +x humann3er50.cmd
+
 
 #!/bin/bash -l
 #SBATCH --time=48:00:00
@@ -46,7 +48,7 @@ chmod +x humann3er50.cmd
 cd $3
 module load parallel
 singularity run -B /$3/kneaddata_output/Humann3Output/all_metaphlan_bug_list /home/umii/goul0109/biobakeryworkflows.sif
-parallel --jobs 5 < humann3er.cmd
+parallel --jobs 5 < humann3er50.cmd
 
 # join tables for metaphlan output
 cd Humann3Output
