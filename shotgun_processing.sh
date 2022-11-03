@@ -1,4 +1,5 @@
-
+srun 
+--export option load user modules 
 ##############################
 #data = $1
 #reference = $2
@@ -9,7 +10,7 @@ chmod +x kneader.cmd
 
 #!/bin/bash -l
 #SBATCH --time=12:00:00
-#SBATCH --ntasks=128
+#SBATCH --cpus-per-task=128
 #SBATCH --mem=248g
 #SBATCH --tmp=10g
 #SBATCH --mail-type=ALL
@@ -40,15 +41,15 @@ chmod +x humann3er50.cmd
 
 #!/bin/bash -l
 #SBATCH --time=48:00:00
-#SBATCH --ntasks=128
+#SBATCH --cpus-per-task=128
 #SBATCH --mem=248g
 #SBATCH --tmp=10g
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=goul0109@umn.edu
 cd $3
 module load parallel
-singularity run -B /$3/kneaddata_output/Humann3Output/all_metaphlan_bug_list /home/umii/goul0109/biobakeryworkflows.sif
-parallel --jobs 5 < humann3er50.cmd
+srun singularity run -B /$3/kneaddata_output/Humann3Output/all_metaphlan_bug_list /home/umii/goul0109/biobakeryworkflows.sif <<<END
+parallel -a humann3er50.cmd --jobs 5
 
 # join tables for metaphlan output
 cd Humann3Output
@@ -83,3 +84,4 @@ sed -i '/g__/d' merged_abundance_table_family.txt
 hclust2.py -i merged_abundance_table_species.txt -o abundance_heatmap_species.png --f_dist_f braycurtis --s_dist_f braycurtis --dpi 600 --cell_aspect_ratio 0.5 -l --flabel_size 5 --slabel_size 5
 hclust2.py -i merged_abundance_table_genus.txt -o abundance_heatmap_genus.png --f_dist_f braycurtis --s_dist_f braycurtis --dpi 600 --cell_aspect_ratio 0.5 -l --flabel_size 3 --slabel_size 3
 hclust2.py -i merged_abundance_table_family.txt -o abundance_heatmap_family.png --f_dist_f braycurtis --s_dist_f braycurtis --dpi 600 --cell_aspect_ratio 0.5 -l --flabel_size 3 --slabel_size 3
+END
